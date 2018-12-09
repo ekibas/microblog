@@ -5,6 +5,18 @@ from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User
 from werkzeug.urls import url_parse
 
+""" Декораторы связывают URL-адреса с функцией. Это означает, что когда веб-браузер
+запрашивает URL-адрес, Flask будет вызывать эту функцию и передать возвращаемое
+значение обратно в браузер в качестве ответа """
+
+"""   Операция, которая преобразует шаблон в HTML-страницу, называется рендерингом.
+Эта функция принимает имя файла шаблона и переменную список аргументов шаблона
+и возвращает один и тот же шаблон, но при этом все заполнители в нем заменяются 
+фактическими значениями.
+  Функция render_template() вызывает механизм шаблонов Jinja2, который поставляется 
+в комплекте с Flask. Jinja2 заменяет блоки {{...}} значениями, заданными аргументами, 
+указанными в вызове render_template(), управляющие операторы, заданные внутри блоков {% ...%}. """
+
 @app.route('/')
 @app.route('/index')
 def index():
@@ -25,11 +37,14 @@ def index():
     ]
     return render_template('index.html', title='1C:Enterprise', user=user, posts = posts)
 
+#Показывает что обрабатывает как запросы GET так и POST
 @app.route('/login',methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
+    'Создаем форму и передаем ее в шаблон для рендеринга'
     form = LoginForm()
+    'Собирает все данные и запускает все валидаторы'
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):

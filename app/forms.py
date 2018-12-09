@@ -1,3 +1,7 @@
+""" Расширение Flask-WTF использует классы Python для представления веб-форм. 
+Класс формы просто определяет поля формы как переменные класса. Поля, определенные 
+в классе LoginForm, знают, как визуализировать себя как HTML"""
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
