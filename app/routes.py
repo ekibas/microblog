@@ -1,9 +1,10 @@
-from app import app
+from app import app, db
 from flask import render_template, redirect, flash, url_for, request
-from app.forms import LoginForm
+from app.forms import LoginForm, SignUpForm, EditProfileForm
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User
 from werkzeug.urls import url_parse
+from datetime import datetime
 
 """ Декораторы связывают URL-адреса с функцией. Это означает, что когда веб-браузер
 запрашивает URL-адрес, Flask будет вызывать эту функцию и передать возвращаемое
@@ -19,8 +20,8 @@ from werkzeug.urls import url_parse
 
 @app.route('/')
 @app.route('/index')
+@login_required # Flask-Login защищает функцию просмотра от анонимных пользователей
 def index():
-    user = {'username': 'ekibas'}
     posts =[
         {
             'author': {'username': 'John'},
@@ -35,7 +36,7 @@ def index():
             'body': 'Какая гадость эта ваша заливная рыба!!'
         }
     ]
-    return render_template('index.html', title='1C:Enterprise', user=user, posts = posts)
+    return render_template('index.html', title='1C:Enterprise', posts = posts)
 
 #Показывает что обрабатывает как запросы GET так и POST
 @app.route('/login',methods=['GET', 'POST'])
@@ -52,6 +53,9 @@ def login():
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
+        """Необходимо определить, что URL является относительным, анализируем его с 
+           помощью функции url_parse() Werkzeug, а затем проверяем, установлен ли компонент 
+           netloc или нет."""
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
         return redirect(next_page)
@@ -61,3 +65,55 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = SignUpForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Congratulations, you are now a registered user!')
+        return redirect(url_for('login'))
+    return render_template('signup.html', title='Sign Up', form=form)
+
+"""Страница профиля пользователя"""
+"""Динамический компонент заключенный в скобки <>, будет передан в качестве аргумента"""
+@app.route('/user/<username>')
+@login_required #Будет доступна только для зарегистрированных пользователей
+def user(username):
+    #first_or_404() - если пользователь не найден в БД, отправляем ошибку 404
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = [
+        {'author': user, 'body': 'Test post #1'},
+        {'author': user, 'body': 'Test post #2'}
+    ]
+    return render_template('user.html', user=user, posts=posts)
+
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = EditProfileForm()
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.about_me = form.about_me.data
+        db.session.commit()
+        flash('Your changes have been saved.')
+        return redirect(url_for('edit_profile'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.about_me.data = current_user.about_me
+    return render_template('edit_profile.html', title='Edit Profile',form=form)
+
+
+"""Декоратор @before_request от Flask регистрирует декорированную функцию, 
+которая должна быть выполнена непосредственно перед функцией просмотра."""
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        #db.session.add() - Эта функция не нужна
+        db.session.commit()
