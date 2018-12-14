@@ -11,3 +11,7 @@ def make_shell_context():
 >>> u = User(username='susan', email='susan@example.com')
 >>> db.session.add(u)
 >>> db.session.commit() """
+
+"""Внутренний эмулятор почтового сервера python
+   запуск: python -m smtpd -n -c DebuggingServer localhost:8025
+   AIL_SERVER = localhost и MAIL_PORT = 8025"""
