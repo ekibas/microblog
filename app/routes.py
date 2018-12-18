@@ -29,14 +29,38 @@ def index():
         db.session.commit()
         flash('Your post is now live!')
         return redirect(url_for('index'))
-    posts = current_user.followed_posts().all()
-    return render_template('index.html', title='1C:Enterprise', form=form, posts = posts)
+    
+    page = request.args.get('page', 1, type=int) #Получение параметра
+    """Разбивка на страницы: Если, например, мне надо получить первые двадцать записей 
+        пользователя, я могу заменить вызов all() в конце запроса:
+        user.followed_posts().paginate(1, 20, False).items"""
+    posts = current_user.followed_posts().paginate(
+        page, app.config['POSTS_PER_PAGE'], False)
+    """Объект класса Pagination из Flask-SQLAlchemy, имеет несколько других атрибутов, которые 
+    полезны при создании ссылок на страницы:
+          has_next: True, если после текущей есть хотя бы одна страница
+          has_prev: True, если есть еще одна страница перед текущей
+          next_num: номер страницы для следующей страницы
+          prev_num: номер страницы для предыдущей страницы"""
+    next_url = url_for('index', page=posts.next_num) \
+        if posts.has_next else None
+    prev_url = url_for('index', page=posts.prev_num) \
+        if posts.has_prev else None
+    return render_template('index.html', title='1C:Enterprise', form=form, posts=posts.items, 
+           next_url=next_url, prev_url=prev_url)
 
 @app.route('/explore')
 @login_required
 def explore():
-    posts = Post.query.order_by(Post.timestamp.desc()).all()
-    return render_template('index.html', title='Explore', posts=posts)
+    page = request.args.get('page', 1, type=int)
+    posts = Post.query.order_by(Post.timestamp.desc()).paginate(
+        page, app.config['POSTS_PER_PAGE'], False)
+    next_url = url_for('explore', page=posts.next_num) \
+        if posts.has_next else None
+    prev_url = url_for('explore', page=posts.prev_num) \
+        if posts.has_prev else None
+    return render_template("index.html", title='Explore', posts=posts.items,
+                          next_url=next_url, prev_url=prev_url)
 
 #Показывает что обрабатывает как запросы GET так и POST
 @app.route('/login',methods=['GET', 'POST'])
@@ -87,11 +111,15 @@ def signup():
 def user(username):
     #first_or_404() - если пользователь не найден в БД, отправляем ошибку 404
     user = User.query.filter_by(username=username).first_or_404()
-    posts = [
-        {'author': user, 'body': 'Test post #1'},
-        {'author': user, 'body': 'Test post #2'}
-    ]
-    return render_template('user.html', user=user, posts=posts)
+    page = request.args.get('page', 1, type=int)
+    posts = user.posts.order_by(Post.timestamp.desc()).paginate(
+        page, app.config['POSTS_PER_PAGE'], False)
+    next_url = url_for('user', username=user.username, page=posts.next_num) \
+        if posts.has_next else None
+    prev_url = url_for('user', username=user.username, page=posts.prev_num) \
+        if posts.has_prev else None
+    return render_template('user.html', user=user, posts=posts.items,
+                           next_url=next_url, prev_url=prev_url)
 
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required

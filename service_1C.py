@@ -15,3 +15,9 @@ def make_shell_context():
 """Внутренний эмулятор почтового сервера python
    запуск: python -m smtpd -n -c DebuggingServer localhost:8025
    AIL_SERVER = localhost и MAIL_PORT = 8025"""
+
+"""Для отправки электронной почты,Flask имеет  расширение Flask-Mail, 
+$ pip install flask-mail
+Ссылки на сброс пароля должны содержать в себе безопасный токен. 
+Чтобы сгенерировать эти токены, необходимо установить пакет JSON Web Tokens, 
+(venv) $ pip install pyjwt """
