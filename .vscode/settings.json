@@ -1,4 +1,14 @@
 {
     "python.linting.enabled": true,
-    "python.pythonPath": "D:\\Workspace_project\\Anaconda\\envs\\FlaskVenv\\python.exe"
+    "python.pythonPath": "D:\\Workspace_project\\Anaconda\\envs\\FlaskVenv\\python.exe",
+    "python.unitTest.unittestArgs": [
+        "-v",
+        "-s",
+        ".",
+        "-p",
+        "test*.py"
+    ],
+    "python.unitTest.pyTestEnabled": false,
+    "python.unitTest.nosetestsEnabled": false,
+    "python.unitTest.unittestEnabled": true
 }

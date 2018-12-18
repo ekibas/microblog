@@ -1,8 +1,8 @@
 from app import app, db
 from flask import render_template, redirect, flash, url_for, request
-from app.forms import LoginForm, SignUpForm, EditProfileForm
+from app.forms import LoginForm, SignUpForm, EditProfileForm, PostForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User
+from app.models import User, Post
 from werkzeug.urls import url_parse
 from datetime import datetime
 
@@ -18,25 +18,25 @@ from datetime import datetime
 в комплекте с Flask. Jinja2 заменяет блоки {{...}} значениями, заданными аргументами, 
 указанными в вызове render_template(), управляющие операторы, заданные внутри блоков {% ...%}. """
 
-@app.route('/')
-@app.route('/index')
+@app.route('/',methods=['GET', 'POST'])
+@app.route('/index',methods=['GET', 'POST'])
 @login_required # Flask-Login защищает функцию просмотра от анонимных пользователей
 def index():
-    posts =[
-        {
-            'author': {'username': 'John'},
-            'body': 'Beautiful day in Portland!'
-        },
-        {
-            'author': {'username': 'Susan'},
-            'body': 'The Avengers movie was so cool!'
-        }, 
-        {
-            'author': {'username': 'Ипполит'},
-            'body': 'Какая гадость эта ваша заливная рыба!!'
-        }
-    ]
-    return render_template('index.html', title='1C:Enterprise', posts = posts)
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(body=form.post.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Your post is now live!')
+        return redirect(url_for('index'))
+    posts = current_user.followed_posts().all()
+    return render_template('index.html', title='1C:Enterprise', form=form, posts = posts)
+
+@app.route('/explore')
+@login_required
+def explore():
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template('index.html', title='Explore', posts=posts)
 
 #Показывает что обрабатывает как запросы GET так и POST
 @app.route('/login',methods=['GET', 'POST'])
@@ -117,3 +117,33 @@ def before_request():
         current_user.last_seen = datetime.utcnow()
         #db.session.add() - Эта функция не нужна
         db.session.commit()
+
+@app.route('/follow/<username>')
+@login_required
+def follow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('User {} not found.'.format(username))
+        return redirect(url_for('index'))
+    if user == current_user:
+        flash('You cannot follow yourself!')
+        return redirect(url_for('user', username=username))
+    current_user.follow(user)
+    db.session.commit()
+    flash('You are following {}!'.format(username))
+    return redirect(url_for('user', username=username))
+
+@app.route('/unfollow/<username>')
+@login_required
+def unfollow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('User {} not found.'.format(username))
+        return redirect(url_for('index'))
+    if user == current_user:
+        flash('You cannot unfollow yourself!')
+        return redirect(url_for('user', username=username))
+    current_user.unfollow(user)
+    db.session.commit()
+    flash('You are not following {}.'.format(username))
+    return redirect(url_for('user', username=username))
