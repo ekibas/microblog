@@ -13,7 +13,9 @@ from flask_login import LoginManager
 import os
 import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
-
+from flask_mail import Mail
+'Инициализация Bootstrap'
+from flask_bootstrap import Bootstrap
 
 
 '__name__ -  переменная содержит имя модуля в котором она используется'
@@ -64,5 +66,15 @@ if not app.debug:
 
     app.logger.setLevel(logging.INFO)
     app.logger.info('Microblog startup')
+
+    mail = Mail(app)
+    """Настройка эмулятора:
+        $ python -m smtpd -n -c DebuggingServer localhost:8025
+        Чтобы настроить этот сервер, необходимо установить две переменные среды:
+        (venv) $ export MAIL_SERVER=localhost
+        (venv) $ export MAIL_PORT=8025"""
+
+'/__init__.py: Инициализация Flask-Bootstrap.'
+bootstrap = Bootstrap(app)
 
 from app import routes, models, errors

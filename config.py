@@ -15,12 +15,20 @@ class Config(object):
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    POSTS_PER_PAGE = 3
+    POSTS_PER_PAGE = 10
 
     """Настройка данных электронной почты"""
-    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
+    '''MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 8025)
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    ADMINS = ['makandreev@korusconsulting.ru']
+    ADMINS = ['makandreev@korusconsulting.ru']'''
+    
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = 'selderey.max@gmail.com'
+    MAIL_PASSWORD = 'Surface1980!'
+    ADMINS = ['selderey.max@gmail.com']
+
