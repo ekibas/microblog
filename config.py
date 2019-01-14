@@ -32,3 +32,5 @@ class Config(object):
     MAIL_PASSWORD = 'Surface1980!'
     ADMINS = ['selderey.max@gmail.com']
 
+    'Список поддерживаемых языков в конфигурации'
+    LANGUAGES = ['en', 'ru']

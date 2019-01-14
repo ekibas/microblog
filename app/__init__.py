@@ -1,6 +1,6 @@
 'В Python подкаталог, содержащий файл __init__.py, считается пакетом и может быть импортирован. '
 'Мы создали пакет по названием app'
-from flask import Flask
+from flask import Flask, request
 'Класс содержащий описание конфигурации Flask-приложения'
 from config import Config
 'Класс описывающий драйвер по работе с СУБД, в данном примере SQLLite'
@@ -16,6 +16,30 @@ from logging.handlers import SMTPHandler, RotatingFileHandler
 from flask_mail import Mail
 'Инициализация Bootstrap'
 from flask_bootstrap import Bootstrap
+'Инициализация библиотеки форматирования даты в пользовательскую локаль'
+from flask_moment import Moment
+'''
+см. user.html
+moment('2017-09-28T21:45:23Z').format('L')
+"09/28/2017"
+moment('2017-09-28T21:45:23Z').format('LL')
+"September 28, 2017"
+moment('2017-09-28T21:45:23Z').format('LLL')
+"September 28, 2017 2:45 PM"
+moment('2017-09-28T21:45:23Z').format('LLLL')
+"Thursday, September 28, 2017 2:45 PM"
+moment('2017-09-28T21:45:23Z').format('dddd')
+"Thursday"
+moment('2017-09-28T21:45:23Z').fromNow()
+"7 hours ago"
+moment('2017-09-28T21:45:23Z').calendar()
+"Today at 2:45 PM"
+'''
+
+'расширение, которое упрощает работу с переводами'
+from flask_babel import Babel,  lazy_gettext as _l
+
+
 
 
 '__name__ -  переменная содержит имя модуля в котором она используется'
@@ -37,7 +61,7 @@ Flask-Login автоматически перенаправляет пользо
 Чтобы эта функция была реализована, Flask-Login должен знать, что такое функция просмотра, 
 которая обрабатывает логины. """
 login.login_view = 'login'
-
+login.login_message = _l('Please log in to access this page.')
 
 if not app.debug:
     if app.config['MAIL_SERVER']:
@@ -76,5 +100,16 @@ if not app.debug:
 
 '/__init__.py: Инициализация Flask-Bootstrap.'
 bootstrap = Bootstrap(app)
+'''Создаем экземпляр Flask-Moment. библиотека для отображения времени серверного времени 
+   UTC в формате пользователя'''
+moment = Moment(app)
+
+babel = Babel(app)
+
+'''Экземпляр Babel предоставляет декоратор localeselector. 
+   Декорированная функция вызывается для каждого запроса, чтобы выбрать перевод языка для использования:'''
+@babel.localeselector
+def get_locale():
+    return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 from app import routes, models, errors

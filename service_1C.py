@@ -1,4 +1,4 @@
-from app import app, db
+from app import app, db, cli
 from app.models import User, Post
 
 '$ SET FLASK_APP=service_1C.py - укажем приложению точку входа'
