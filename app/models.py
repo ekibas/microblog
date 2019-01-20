@@ -80,9 +80,7 @@ class User(UserMixin, db.Model):
                             algorithms=['HS256'])['reset_password']
         except:
             return
-        return User.query.get(id)
-    
-    
+        return User.query.get(id)       
     'Метод определяет представление объектов данного класса'
     def __repr__(self):
         return '<User {}>'.format(self.username) 
@@ -105,6 +103,8 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     #Определим внешний ключ для связи с таблицей пользователей
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
+    language = db.Column(db.String(5))
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)

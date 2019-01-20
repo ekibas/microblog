@@ -6,6 +6,17 @@ from app.models import User, Post
 from werkzeug.urls import url_parse
 from datetime import datetime
 from app.email import send_password_reset_email
+from guess_language import guess_language
+from flask import jsonify
+from app.translate import translate
+
+
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        db.session.commit()
+    g.locale = str(get_locale())
 
 """ Декораторы связывают URL-адреса с функцией. Это означает, что когда веб-браузер
 запрашивает URL-адрес, Flask будет вызывать эту функцию и передать возвращаемое
@@ -25,7 +36,11 @@ from app.email import send_password_reset_email
 def index():
     form = PostForm()
     if form.validate_on_submit():
-        post = Post(body=form.post.data, author=current_user)
+        language = guess_language((form.post.data))
+        if language == 'UNKNOWN' or len(language) > 5:
+            language = ''
+        post = Post(body=form.post.data, author=current_user,
+                    language=language)
         db.session.add(post)
         db.session.commit()
         flash('Your post is now live!')
@@ -74,7 +89,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
-            flash(_('Invalid username or password'))
+            flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
@@ -205,3 +220,14 @@ def reset_password(token):
         flash('Your password has been reset.')
         return redirect(url_for('login'))
     return render_template('reset_password.html', form=form)
+
+'''Результат функции translate() включается в словарь с одним единственным ключом под именем text, 
+а словарь передается как аргумент функции jsonify() Flask, которая преобразует словарь 
+в форматированную полезную нагрузку JSON. Возвращаемое значение из jsonify() — это ответ HTTP, 
+который будет отправлен обратно клиенту.'''
+@app.route('/translate', methods=['POST'])
+@login_required
+def translate_text():
+    return jsonify({'text': translate(request.form['text'],
+                                      request.form['source_language'],
+                                      request.form['dest_language'])})
