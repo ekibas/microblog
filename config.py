@@ -1,7 +1,13 @@
 import os
+from dotenv import load_dotenv
+
+
+
 'Абсолютный путь до директории, где лежит config.py'
 'в данном примере: D:\\Repo\\Flask_WSGI_1C'
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+load_dotenv(os.path.join(basedir, 'flask.env'))
 
 """   SECRET_KEY используется в качестве криптографического ключа, полезного для 
 генерации подписей или токенов. Расширение Flask-WTF использует его для защиты 
