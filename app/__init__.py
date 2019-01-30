@@ -37,6 +37,9 @@ moment('2017-09-28T21:45:23Z').calendar()
 '''
 'расширение, которое упрощает работу с переводами'
 from flask_babel import Babel,  lazy_gettext as _l
+from elasticsearch import Elasticsearch
+
+
 
 
 db = SQLAlchemy()
@@ -72,7 +75,8 @@ def create_app(config_class=Config):
     '__name__ -  переменная содержит имя модуля в котором она используется'
     app = Flask(__name__)
     app.config.from_object(config_class)
-
+    app.elasticsearch = Elasticsearch([app.config['ELASTICSEARCH_URL']]) \
+        if app.config['ELASTICSEARCH_URL'] else None
     db.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)

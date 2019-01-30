@@ -42,4 +42,6 @@ class Config(object):
     LANGUAGES = ['en', 'ru']
 
     MS_TRANSLATOR_KEY = os.environ.get('MS_TRANSLATOR_KEY')
-   #set MS_TRANSLATOR_KEY=1caf2b17917d43ceab910d2cc19e9103
+    #set MS_TRANSLATOR_KEY=1caf2b17917d43ceab910d2cc19e9103
+    ELASTICSEARCH_URL  = os.environ.get('ELASTICSEARCH_URL')
+    #set ELASTICSEARCH_URL=http://localhost:9200
