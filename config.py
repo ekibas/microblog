@@ -14,6 +14,7 @@ load_dotenv(os.path.join(basedir, 'flask.env'))
 веб-форм от атаки под названием Cross-Site Request Forgery или CSRF """
 
 class Config(object):
+    LOG_TO_STDOUT = os.environ.get('LOG_TO_STDOUT')
     'Пробуем получить ключ из переменной окружения, если нет задаем явно'
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
     
